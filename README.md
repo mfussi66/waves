@@ -1,5 +1,5 @@
 # waves
-An attempt at reproducing Joy Division's Unknown Pleasures artwork in pure C and Allegro 4.4.
+An attempt at reproducing Joy Division's Unknown Pleasures cover art in pure C and Allegro 4.4.
 
 Something along these lines:
 
