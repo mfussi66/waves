@@ -22,6 +22,8 @@ CFLAGS= -Wall -std=c11 -lm
 
 SRC= src
 
+EXT= extern/kissfft
+
 ##---------------------------------------
 ## OBJS are the object files to be linked
 ##---------------------------------------
@@ -30,8 +32,9 @@ SRC= src
 #OBJS= $(MAIN).o $(OBJ1).o $(OBJ2).o
 
 OBJ1= graphics
+OBJ2= kiss_fft
 
-OBJS= $(MAIN).o $(OBJ1).o
+OBJS= $(MAIN).o $(OBJ1).o $(OBJ2).o
 
 ##---------------------------------------
 ## LIBS are the external libraries to be used
@@ -50,6 +53,9 @@ $(MAIN).o: $(SRC)/$(MAIN).c
 
 $(OBJ1).o: $(SRC)/$(OBJ1).c
 	$(CC) -c $(SRC)/$(OBJ1).c
+
+$(OBJ2).o: $(SRC)/$(EXT)/$(OBJ2).c
+	$(CC) -c $(SRC)/$(EXT)/$(OBJ2).c
 
 clean:
 	@rm -f $(MAIN) *.o

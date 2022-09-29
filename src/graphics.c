@@ -39,7 +39,7 @@ void start_allegro(int mode) {
 void close_allegro(void) {
   allegro_exit();
 
-  printf("Closing Allegro.");
+  printf("Closing Allegro\n");
 }
 
 /*
