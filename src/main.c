@@ -18,6 +18,13 @@ int linspace(float start, float end, float phase_angle, float* array) {
     return 0;
 }
 
+void sum_v(float* a, float* b, uint32_t N) {
+    for(uint32_t i = 0; i < N; ++i) b[i] += a[i];
+}
+
+void mult_scalar(float a, float* b, uint32_t N) {
+    for(uint32_t i = 0; i < N; ++i) b[i] *= a;
+}
 
 float r2d(float r) {
     return r * 180/M_PI;
@@ -27,16 +34,21 @@ float d2r(float d) {
     return d * M_PI / 180;
 }
 
-void complex2ampli(kiss_fft_cpx* cin, float* aout, uint32_t N) {
+void norm2_v(kiss_fft_cpx* cin, float* aout, uint32_t N) {
     for(uint32_t i = 0; i < N; ++i)
         aout[i] = sqrtf(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
+}
+
+float norm2(kiss_fft_cpx* c) {
+        // printf("[r] %.2f [i] %.2f\n", c->r, c->i);
+        return sqrtf(c->r * c->r + c->i * c->i);
 }
 
 int main(int argc, char *argv[]) {
 
     BITMAP* buffer_gfx;
     uint8_t scan = 0;
-    struct timespec remaining, request = {0, 33 * 1e6};
+    struct timespec remaining, request = {0, 12 * 1e6};
 
     kiss_fft_cfg cfg;
     kiss_fft_cpx in[N_STEPS], out[N_STEPS];
@@ -50,9 +62,16 @@ int main(int argc, char *argv[]) {
     float fourth[N_STEPS];
 
     linspace(0, 4 * M_PI, d2r(0), first);
-    linspace(0, 8 * M_PI, d2r(0), second);
-    linspace(0, 16 * M_PI, d2r(0), third);
-    linspace(0, 24 * M_PI, d2r(0), fourth);
+    linspace(0, 43 * M_PI, d2r(0), second);
+    linspace(0, 67 * M_PI, d2r(0), third);
+    linspace(0, 45 * M_PI, d2r(0), fourth);
+
+    sum_v(first, second, N_STEPS);
+    mult_scalar(3, second, N_STEPS);
+    sum_v(second, third, N_STEPS);
+    mult_scalar(1.5, third, N_STEPS);
+    sum_v(third, fourth, N_STEPS);
+    mult_scalar(7.2, fourth, N_STEPS);
 
     // Create Graphics Thread
     start_allegro(GFX_AUTODETECT_WINDOWED);
@@ -79,16 +98,13 @@ int main(int argc, char *argv[]) {
         kiss_fft(cfg, in, out);
 
         for(uint32_t i = 0; i < N_STEPS; ++i) {
-            read_index = (i + read_offset) % (N_STEPS);
+            read_index = (i + read_offset) % (N_STEPS-1);
 
-            fastline(buffer_gfx, 10 + (i) * 780 / N_STEPS, 100 + 1e-2 * (pow(out[read_index].r,2.0) + pow(out[read_index].i,2)),
-                                 10 + (i+1) * 780 / N_STEPS, 100 + 1e-2 * (pow(out[read_index+1].r,2.0) + pow(out[read_index+1].i,2)), makecol(255, 255, 255));
-            fastline(buffer_gfx, 10 + (i) * 780 / N_STEPS, 300 + PEAK_AMPLITUDE * second[read_index],
-                                 10 + (i+1) * 780 / N_STEPS, 300 + PEAK_AMPLITUDE * second[read_index+1], makecol(255, 255, 255));
-            fastline(buffer_gfx, 10 + (i) * 780 / N_STEPS, 500 + PEAK_AMPLITUDE * third[read_index],
-                                 10 + (i+1) * 780 / N_STEPS, 500 + PEAK_AMPLITUDE * third[read_index+1], makecol(255, 255, 255));
-            fastline(buffer_gfx, 10 + (i) * 780 / N_STEPS, 700 + PEAK_AMPLITUDE * fourth[read_index],
-                                 10 + (i+1) * 780 / N_STEPS, 700 + PEAK_AMPLITUDE * fourth[read_index+1], makecol(255, 255, 255));
+            for(uint32_t l = 2; l < 90; ++l) {
+                fastline_bottom_left(buffer_gfx,
+                                    10 + (i) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index]),
+                                    10 + (i+1) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index+1]), makecol(255, 255, 255));
+            }
         }
 
         if(++read_offset > N_STEPS) read_offset = 0;

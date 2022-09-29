@@ -25,8 +25,6 @@ void build_gui(BITMAP* bmp, int col);
 
 void draw_exit_screen(BITMAP* bmp, int col);
 
-void update_plot(BITMAP* bmp, double* data, int coord_x, int coord_y, double scale);
-
-void draw_msg(BITMAP* bmp, int mode, int x, int y);
+void fastline_bottom_left(BITMAP* buf, int x1, int y1, int x2, int y2, int col);
 
 #endif

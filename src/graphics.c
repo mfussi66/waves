@@ -67,42 +67,6 @@ void draw_exit_screen(BITMAP* bmp, int col) {
                     HEIGHT_SCREEN / 2 + 15, col, -1);
 }
 
-/*
- * Function: Plots update
- * ---------------------------
- * Updates the plot of the variable of interest
- */
-void update_plot(BITMAP* bmp, double* data, int coord_x, int coord_y,
-                 double scale) {
-  int x = coord_x - (PLT_STEP * PLT_DATA_SIZE);
-  int y = coord_y - (data[0] * scale) - PLT_FRAME_SIZE / 2;
-
-  int x_prev = x;
-  int y_prev = y;
-
-  rectfill(bmp, coord_x - 100, coord_y - 100, coord_x - 1, coord_y - 1,
-           makecol(0, 0, 0));
-
-  for (int i = 0; i < PLT_DATA_SIZE; i++) {
-    x = x + PLT_STEP;
-
-    y = coord_y - (data[i] * scale) - PLT_FRAME_SIZE / 2;
-
-    if (y <= (coord_y - PLT_FRAME_SIZE)) y = coord_y - PLT_FRAME_SIZE + 1;
-
-    if (y >= coord_y) y = coord_y - 1;
-
-    if (y_prev <= (coord_y - PLT_FRAME_SIZE))
-      y_prev = coord_y - PLT_FRAME_SIZE + 1;
-
-    if (y_prev >= coord_y) y_prev = coord_y - 1;
-
-    if (getpixel(bmp, x_prev, y_prev) < 0) continue;
-    if (getpixel(bmp, x, y) < 0) continue;
-
-    fastline(bmp, x_prev, y_prev, x, y, COL_GREEN);
-
-    x_prev = x;
-    y_prev = y;
-  }
+void fastline_bottom_left(BITMAP* buf, int x1, int y1, int x2, int y2, int col) {
+    fastline(buf, x1, SCREEN_H - y1, x2, SCREEN_H - y2, col);
 }
