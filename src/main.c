@@ -44,6 +44,10 @@ float norm2(kiss_fft_cpx* c) {
         return sqrtf(c->r * c->r + c->i * c->i);
 }
 
+int compute_target_x(uint32_t i, int offset) {
+    return  offset / 2 + (i) * (SCREEN_W - offset) / N_STEPS;
+}
+
 int main(int argc, char *argv[]) {
 
     BITMAP* buffer_gfx;
@@ -78,7 +82,7 @@ int main(int argc, char *argv[]) {
 
     buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
     clear_to_color(buffer_gfx, 0);
-    build_gui(buffer_gfx, makecol(255, 255, 255));
+    //build_gui(buffer_gfx, makecol(255, 255, 255));
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
     uint32_t read_index = 0;
@@ -89,7 +93,7 @@ int main(int argc, char *argv[]) {
         if (keypressed()) scan = readkey() >> 8;
 
         clear_to_color(buffer_gfx, 0);
-        build_gui(buffer_gfx, makecol(255, 255, 255));
+        //build_gui(buffer_gfx, makecol(255, 255, 255));
 
 
         for (uint32_t i = 0; i < N_STEPS; i++)
@@ -102,8 +106,10 @@ int main(int argc, char *argv[]) {
 
             for(uint32_t l = 2; l < 90; ++l) {
                 fastline_bottom_left(buffer_gfx,
-                                    10 + (i) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index]),
-                                    10 + (i+1) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index+1]), makecol(255, 255, 255));
+                                    compute_target_x(i, 100),
+                                     8 * l + 0.01 * norm2(&out[read_index]),
+                                    compute_target_x(i+1, 100),
+                                     8 * l + 0.01 * norm2(&out[read_index+1]), makecol(255, 255, 255));
             }
         }
 
