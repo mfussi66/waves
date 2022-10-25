@@ -1,5 +1,7 @@
 /* Function file for RTS Project */
 
+#define _POSIX_C_SOURCE 199309L
+
 #include "task.h"
 
 /* --- Functions--- */

@@ -2,10 +2,15 @@
 #include "graphics.h"
 #include <math.h>
 #include <time.h>
-#include "extern/kissfft/kiss_fft.h"
+#include "../extern/kissfft/kiss_fft.h"
 
 #define N_STEPS 128
 #define PEAK_AMPLITUDE 50.0
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 
 int linspace(float start, float end, float phase_angle, float* array) {
     float step = (end - start) / (float)N_STEPS;
@@ -46,7 +51,6 @@ float norm2(kiss_fft_cpx* c) {
 
 int main(int argc, char *argv[]) {
 
-    BITMAP* buffer_gfx;
     uint8_t scan = 0;
     struct timespec remaining, request = {0, 12 * 1e6};
 
@@ -74,11 +78,16 @@ int main(int argc, char *argv[]) {
     mult_scalar(7.2, fourth, N_STEPS);
 
     // Create Graphics Thread
-    start_allegro(GFX_AUTODETECT_WINDOWED);
 
-    buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
-    clear_to_color(buffer_gfx, 0);
-    build_gui(buffer_gfx, makecol(255, 255, 255));
+        ALLEGRO_TIMER* timer = al_create_timer(1.0 / 30.0);
+    ALLEGRO_EVENT_QUEUE* queue = al_create_event_queue();
+    ALLEGRO_DISPLAY* disp = al_create_display(800, 800);
+    ALLEGRO_FONT* font = al_create_builtin_font();
+
+
+    ALLEGRO_BITMAP* buffer_gfx = al_create_bitmap(800, 800);
+    al_clear_to_color(al_map_rgb(0,0,0));
+    build_gui(255);
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
     uint32_t read_index = 0;
@@ -101,7 +110,7 @@ int main(int argc, char *argv[]) {
             read_index = (i + read_offset) % (N_STEPS-1);
 
             for(uint32_t l = 2; l < 90; ++l) {
-                fastline_bottom_left(buffer_gfx,
+                fastline_bottom_left(
                                     10 + (i) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index]),
                                     10 + (i+1) * 780 / N_STEPS, 8 * l + 0.05 * norm2(&out[read_index+1]), makecol(255, 255, 255));
             }

@@ -1,0 +1,3 @@
+/home/mattia/code/waves-git/build/CMakeFiles/waves.dir
+/home/mattia/code/waves-git/build/CMakeFiles/edit_cache.dir
+/home/mattia/code/waves-git/build/CMakeFiles/rebuild_cache.dir

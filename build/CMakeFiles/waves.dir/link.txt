@@ -1,0 +1,1 @@
+/usr/bin/gcc CMakeFiles/waves.dir/src/waves/graphics.c.o CMakeFiles/waves.dir/src/waves/main.c.o CMakeFiles/waves.dir/src/extern/kissfft/kiss_fft.c.o -o waves  -lallegro -lm 
