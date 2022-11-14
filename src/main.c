@@ -48,6 +48,21 @@ int compute_target_x(uint32_t i, int offset) {
     return  offset / 2 + (i) * (SCREEN_W - offset) / N_STEPS;
 }
 
+void init_gaussian(int n_samples, float* array) {
+
+    for(int32_t i= 0 ;i < n_samples ; ++i) {
+        array[i] = exp(-(i - n_samples / 2) * (i - n_samples / 2) * 0.5 / 128) / 20;
+         //printf("%u: %.3f\n", i, array[i]);
+    }
+
+}
+
+void apply_gaussian(int n_samples, float* array, float* kernel) {
+    for(uint32_t i = 0; i < n_samples; ++i) {
+        array[i] = array[i] * kernel[i];
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     BITMAP* buffer_gfx;
@@ -64,6 +79,10 @@ int main(int argc, char *argv[]) {
     float second[N_STEPS];
     float third[N_STEPS];
     float fourth[N_STEPS];
+
+    float gaussian_kernel[N_STEPS];
+
+    init_gaussian(N_STEPS, gaussian_kernel);
 
     linspace(0, 4 * M_PI, d2r(0), first);
     linspace(0, 43 * M_PI, d2r(0), second);
@@ -105,11 +124,13 @@ int main(int argc, char *argv[]) {
             read_index = (i + read_offset) % (N_STEPS-1);
 
             for(uint32_t l = 2; l < 90; ++l) {
-                fastline_bottom_left(buffer_gfx,
-                                    compute_target_x(i, 100),
-                                     8 * l + 0.01 * norm2(&out[read_index]),
-                                    compute_target_x(i+1, 100),
-                                     8 * l + 0.01 * norm2(&out[read_index+1]), makecol(255, 255, 255));
+
+                float p1[2] = {compute_target_x(i, 100),
+                                8 * l + gaussian_kernel[i] * norm2(&out[read_index])};
+                float p2[2] = {compute_target_x(i+1, 100),
+                                8 * l + gaussian_kernel[i] * norm2(&out[read_index+1])};
+
+                fastline_bottom_left(buffer_gfx, p1[0], p1[1], p2[0], p2[1], makecol(255, 255, 255));
             }
         }
 
