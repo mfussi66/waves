@@ -116,6 +116,11 @@ int main(int argc, char *argv[]) {
 
     float *samples = (float*)malloc(file_info.frames * sizeof(float));
 
+    sf_count_t count = sf_readf_float(sndfile, samples, file_info.frames);
+
+    printf("count: %d frames: %d \n",count , file_info.frames);
+
+
     // Check for pressed key
     while (key[KEY_ESC] == 0) {
         if (keypressed()) scan = readkey() >> 8;
