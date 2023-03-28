@@ -14,7 +14,7 @@ CC=gcc
 ## CFLAGS are the options passed to the compiler
 ##---------------------------------------
 
-CFLAGS= -Wall -std=c11 -lm
+CFLAGS=-Wall -std=c11 -lm -lalleg
 
 ##---------------------------------------
 ## SRC relative path of source files
@@ -40,7 +40,7 @@ OBJS= $(MAIN).o $(OBJ1).o $(OBJ2).o
 ## LIBS are the external libraries to be used
 ##---------------------------------------
 
-LIBS=`allegro-config --libs`
+LIBS=`pkg-config --libs sndfile`
 
 ##---------------------------------------
 ##DEPENDENCIES

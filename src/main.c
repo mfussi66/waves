@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include "extern/kissfft/kiss_fft.h"
+#include <sndfile.h>
 
 #define N_STEPS 128
 #define PEAK_AMPLITUDE 50.0
@@ -107,6 +108,14 @@ int main(int argc, char *argv[]) {
     uint32_t read_index = 0;
     uint32_t read_offset = 0;
 
+    SF_INFO file_info;
+
+     SNDFILE *sndfile = sf_open("./disorder.wav", SFM_READ, &file_info);
+
+    printf("File info:\n\tRate: %d\n\tFormat: %d\n\tChannels: %d\n",file_info.samplerate, file_info.format, file_info.channels);
+
+    float *samples = (float*)malloc(file_info.frames * sizeof(float));
+
     // Check for pressed key
     while (key[KEY_ESC] == 0) {
         if (keypressed()) scan = readkey() >> 8;
@@ -143,8 +152,12 @@ int main(int argc, char *argv[]) {
 
     free(cfg);
 
+    sf_close(sndfile);
+
     destroy_bitmap(buffer_gfx);
     close_allegro();
+
+    free(samples);
 
     return 0;
 }
