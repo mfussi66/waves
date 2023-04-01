@@ -5,14 +5,14 @@
 #include "extern/kissfft/kiss_fft.h"
 #include <sndfile.h>
 
-#define N_STEPS 128
+#define N_SAMPLES 2048
 #define PEAK_AMPLITUDE 50.0
-
+#define N_LINE_POINTS 64
 int linspace(float start, float end, float phase_angle, float* array) {
-    float step = (end - start) / (float)N_STEPS;
+    float step = (end - start) / (float)N_SAMPLES;
     array[0] = start;
 
-    for(uint8_t i = 0; i < N_STEPS; ++i) {
+    for(size_t i = 0; i < N_SAMPLES; ++i) {
         array[i] = sin(start + (float)i * step + phase_angle);
     }
 
@@ -41,21 +41,37 @@ void norm2_v(kiss_fft_cpx* cin, float* aout, uint32_t N) {
 }
 
 float norm2(kiss_fft_cpx* c) {
-        // printf("[r] %.2f [i] %.2f\n", c->r, c->i);
-        return sqrtf(c->r * c->r + c->i * c->i);
+
+        float f = sqrtf(c->r * c->r + c->i * c->i);
+        //printf("[f] %f\n", f);
+        //printf("[r] %.2f [i] %.2f\n", c->r, c->i);
+        return f;
 }
 
 int compute_target_x(uint32_t i, int offset) {
-    return  offset / 2 + (i) * (SCREEN_W - offset) / N_STEPS;
+    return  offset / 2 + (i) * (SCREEN_W - offset) / N_LINE_POINTS;
 }
 
-void init_gaussian(int n_samples, float* array) {
-
+void init_gaussian(int n_samples, double* array) {
     for(int32_t i= 0 ;i < n_samples ; ++i) {
-        array[i] = exp(-(i - n_samples / 2) * (i - n_samples / 2) * 0.5 / 128) / 20;
-         //printf("%u: %.3f\n", i, array[i]);
+        array[i] = 0.4* exp(-0.5*(((double)i - (double)n_samples / 2.0)/30.0) * (((double)i - (double)n_samples / 2.0) /30.0));
+         //printf("%u: %f\n", i, array[i]);
     }
+}
 
+void movavg(float *in, float *out, int window) {
+    int k = 1;
+    for(uint32_t j = 0; j < N_SAMPLES; j+=window)
+        {
+            for(int i = j ; i < window * k; ++i)
+            {
+                out[j] += in[i];
+                out[j] /= window;
+               // printf("[j] %d [i] %d [r] %f\n", j, i, out[i]);
+
+            }
+            k++;
+        }
 }
 
 void apply_gaussian(int n_samples, float* array, float* kernel) {
@@ -68,41 +84,27 @@ int main(int argc, char *argv[]) {
 
     BITMAP* buffer_gfx;
     uint8_t scan = 0;
-    struct timespec remaining, request = {0, 12 * 1e6};
+    struct timespec remaining, request = {0, 2 * 1e7};
 
     kiss_fft_cfg cfg;
-    kiss_fft_cpx in[N_STEPS], out[N_STEPS];
-    cfg = kiss_fft_alloc(N_STEPS, 0/*is_inverse_fft*/, NULL, NULL);
+    kiss_fft_cpx in[N_SAMPLES], out[N_SAMPLES];
+    float out_avg[N_LINE_POINTS];
+    cfg = kiss_fft_alloc(N_SAMPLES, 0/*is_inverse_fft*/, NULL, NULL);
 
+
+    float out_matrix[N_LINE_POINTS][N_LINE_POINTS];
     int WHITE = makecol(255, 255, 255);
 
-    float first[N_STEPS];
-    float second[N_STEPS];
-    float third[N_STEPS];
-    float fourth[N_STEPS];
+    float fourth[N_SAMPLES];
 
-    float gaussian_kernel[N_STEPS];
+    double gaussian_kernel[N_LINE_POINTS];
 
-    init_gaussian(N_STEPS, gaussian_kernel);
+    init_gaussian(N_LINE_POINTS, gaussian_kernel);
 
-    linspace(0, 4 * M_PI, d2r(0), first);
-    linspace(0, 43 * M_PI, d2r(0), second);
-    linspace(0, 67 * M_PI, d2r(0), third);
-    linspace(0, 45 * M_PI, d2r(0), fourth);
-
-    sum_v(first, second, N_STEPS);
-    mult_scalar(3, second, N_STEPS);
-    sum_v(second, third, N_STEPS);
-    mult_scalar(1.5, third, N_STEPS);
-    sum_v(third, fourth, N_STEPS);
-    mult_scalar(7.2, fourth, N_STEPS);
-
-    // Create Graphics Thread
     start_allegro(GFX_AUTODETECT_WINDOWED);
 
     buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
     clear_to_color(buffer_gfx, 0);
-    //build_gui(buffer_gfx, makecol(255, 255, 255));
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
     uint32_t read_index = 0;
@@ -112,43 +114,62 @@ int main(int argc, char *argv[]) {
 
      SNDFILE *sndfile = sf_open("./disorder.wav", SFM_READ, &file_info);
 
-    printf("File info:\n\tRate: %d\n\tFormat: %d\n\tChannels: %d\n",file_info.samplerate, file_info.format, file_info.channels);
-
-    float *samples = (float*)malloc(file_info.frames * sizeof(float));
-
-    sf_count_t count = sf_readf_float(sndfile, samples, file_info.frames);
-
-    printf("count: %d frames: %d \n",count , file_info.frames);
+    printf("File info:\n\tRate: %d\n\tFormat: %d\n\tChannels: %d\n\tFrames: %lu\n",
+           file_info.samplerate, file_info.format, file_info.channels, file_info.frames);
 
 
-    // Check for pressed key
+    float *samples = (float*)malloc(file_info.frames * file_info.channels * sizeof(float));
+
+    sf_count_t count = -1;
+    if (samples != NULL)
+    {
+        count = sf_readf_float(sndfile, samples, file_info.frames);
+        printf("count: %lu frames: %lu \n",count , file_info.frames);
+    }
+
+    sf_count_t samples_counter = 0;
+
     while (key[KEY_ESC] == 0) {
         if (keypressed()) scan = readkey() >> 8;
 
         clear_to_color(buffer_gfx, 0);
-        //build_gui(buffer_gfx, makecol(255, 255, 255));
 
+        memcpy(fourth, &samples[samples_counter], sizeof(float) * N_SAMPLES);
 
-        for (uint32_t i = 0; i < N_STEPS; i++)
-            in[i].r = fourth[i], in[i].i = 0;
+        samples_counter+= N_SAMPLES;
+        if(samples_counter >= count)
+        {
+            break;
+        }
+
+        for (uint32_t i = 0; i < N_SAMPLES; i++)
+        {
+            in[i].r = fourth[i];
+            in[i].i = 0;
+        }
 
         kiss_fft(cfg, in, out);
 
-        for(uint32_t i = 0; i < N_STEPS; ++i) {
-            read_index = (i + read_offset) % (N_STEPS-1);
+        float out_norm[N_SAMPLES];
+        norm2_v(out, out_norm, N_SAMPLES);
 
-            for(uint32_t l = 2; l < 90; ++l) {
+        movavg(out_norm, out_avg, 32);
+
+        for(uint32_t i = 0; i < N_LINE_POINTS; ++i) {
+            read_index = (i + read_offset) % (N_LINE_POINTS-1);
+
+            for(uint32_t l = 2; l < N_LINE_POINTS; ++l) {
 
                 float p1[2] = {compute_target_x(i, 100),
-                                8 * l + gaussian_kernel[i] * norm2(&out[read_index])};
+                                10 * l + gaussian_kernel[i] * out_norm[read_index]};
                 float p2[2] = {compute_target_x(i+1, 100),
-                                8 * l + gaussian_kernel[i] * norm2(&out[read_index+1])};
+                                10 * l + gaussian_kernel[i] * out_norm[read_index+1]};
 
                 fastline_bottom_left(buffer_gfx, p1[0], p1[1], p2[0], p2[1], makecol(255, 255, 255));
             }
         }
 
-        if(++read_offset > N_STEPS) read_offset = 0;
+        if(++read_offset > N_LINE_POINTS) read_offset = 0;
 
         blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
