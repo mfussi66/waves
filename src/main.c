@@ -76,6 +76,21 @@ void apply_gaussian(int n_samples, double* array, double* kernel) {
 }
 
 int main(int argc, char* argv[]) {
+
+  if(argc < 2) {
+
+    printf("Error: no audio file was passed\n");
+    return 1;
+  }
+
+  SF_INFO file_info;
+  SNDFILE* sndfile = sf_open(argv[1], SFM_READ, &file_info);
+
+  if (sndfile == NULL || file_info.frames == 0) {
+    printf("Error: file not found\n");
+    return 1;
+  }
+
   BITMAP* buffer_gfx;
   uint8_t scan = 0;
   struct timespec remaining, request = {0, 2 * 1e7};
@@ -102,21 +117,6 @@ int main(int argc, char* argv[]) {
   blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
   uint32_t read_index = 0;
   uint32_t read_offset = 0;
-
-  SF_INFO file_info;
-
-  SNDFILE* sndfile = sf_open("./disorder.wav", SFM_READ, &file_info);
-
-  if (file_info.frames == 0) {
-    printf("Error: file not found\n");
-
-    free(cfg);
-    sf_close(sndfile);
-    destroy_bitmap(buffer_gfx);
-    close_allegro();
-
-    return 1;
-  }
 
   printf(
       "File info:\n\tRate: %d\n\tFormat: %d\n\tChannels: %d\n\tFrames: %lu\n",
