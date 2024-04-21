@@ -2,47 +2,48 @@
 #include "graphics.h"
 #include <math.h>
 #include <time.h>
-#include "extern/kissfft/kiss_fft.h"
+#include <kissfft/kiss_fft.h>
 #include <sndfile.h>
 
 #define N_SAMPLES 2048
 #define PEAK_AMPLITUDE 50.0
 #define N_LINE_POINTS 64
-int linspace(float start, float end, float phase_angle, float* array) {
-    float step = (end - start) / (float)N_SAMPLES;
+
+int linspace(double start, double end, double phase_angle, double* array) {
+    double step = (end - start) / (double)N_SAMPLES;
     array[0] = start;
 
     for(size_t i = 0; i < N_SAMPLES; ++i) {
-        array[i] = sin(start + (float)i * step + phase_angle);
+        array[i] = sin(start + (double)i * step + phase_angle);
     }
 
     return 0;
 }
 
-void sum_v(float* a, float* b, uint32_t N) {
+void sum_v(double* a, double* b, uint32_t N) {
     for(uint32_t i = 0; i < N; ++i) b[i] += a[i];
 }
 
-void mult_scalar(float a, float* b, uint32_t N) {
+void mult_scalar(double a, double* b, uint32_t N) {
     for(uint32_t i = 0; i < N; ++i) b[i] *= a;
 }
 
-float r2d(float r) {
+inline double r2d(double r) {
     return r * 180/M_PI;
 }
 
-float d2r(float d) {
+inline double d2r(double d) {
     return d * M_PI / 180;
 }
 
-void norm2_v(kiss_fft_cpx* cin, float* aout, uint32_t N) {
+void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
     for(uint32_t i = 0; i < N; ++i)
         aout[i] = sqrtf(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
 }
 
-float norm2(kiss_fft_cpx* c) {
+double norm2(kiss_fft_cpx* c) {
 
-        float f = sqrtf(c->r * c->r + c->i * c->i);
+        double f = sqrtf(c->r * c->r + c->i * c->i);
         //printf("[f] %f\n", f);
         //printf("[r] %.2f [i] %.2f\n", c->r, c->i);
         return f;
@@ -59,7 +60,7 @@ void init_gaussian(int n_samples, double* array) {
     }
 }
 
-void movavg(float *in, float *out, int window) {
+void movavg(double *in, double *out, int window) {
     int k = 1;
     for(uint32_t j = 0; j < N_SAMPLES; j+=window)
         {
@@ -74,7 +75,7 @@ void movavg(float *in, float *out, int window) {
         }
 }
 
-void apply_gaussian(int n_samples, float* array, float* kernel) {
+void apply_gaussian(int n_samples, double* array, double* kernel) {
     for(uint32_t i = 0; i < n_samples; ++i) {
         array[i] = array[i] * kernel[i];
     }
@@ -88,14 +89,14 @@ int main(int argc, char *argv[]) {
 
     kiss_fft_cfg cfg;
     kiss_fft_cpx in[N_SAMPLES], out[N_SAMPLES];
-    float out_avg[N_LINE_POINTS];
+    double out_avg[N_LINE_POINTS];
     cfg = kiss_fft_alloc(N_SAMPLES, 0/*is_inverse_fft*/, NULL, NULL);
 
 
-    float out_matrix[N_LINE_POINTS][N_LINE_POINTS];
+    double out_matrix[N_LINE_POINTS][N_LINE_POINTS];
     int WHITE = makecol(255, 255, 255);
 
-    float fourth[N_SAMPLES];
+    double fourth[N_SAMPLES];
 
     double gaussian_kernel[N_LINE_POINTS];
 
@@ -114,16 +115,28 @@ int main(int argc, char *argv[]) {
 
      SNDFILE *sndfile = sf_open("./disorder.wav", SFM_READ, &file_info);
 
+    if(file_info.frames == 0)
+    {
+        printf("Error: file not found\n");
+
+        free(cfg);
+        sf_close(sndfile);
+        destroy_bitmap(buffer_gfx);
+        close_allegro();
+
+        return 1;
+    }
+
     printf("File info:\n\tRate: %d\n\tFormat: %d\n\tChannels: %d\n\tFrames: %lu\n",
            file_info.samplerate, file_info.format, file_info.channels, file_info.frames);
 
 
-    float *samples = (float*)malloc(file_info.frames * file_info.channels * sizeof(float));
+    double *samples = (double*)malloc(file_info.frames * file_info.channels * sizeof(double));
 
     sf_count_t count = -1;
     if (samples != NULL)
     {
-        count = sf_readf_float(sndfile, samples, file_info.frames);
+        count = sf_read_double(sndfile, samples, file_info.frames);
         printf("count: %lu frames: %lu \n",count , file_info.frames);
     }
 
@@ -134,7 +147,7 @@ int main(int argc, char *argv[]) {
 
         clear_to_color(buffer_gfx, 0);
 
-        memcpy(fourth, &samples[samples_counter], sizeof(float) * N_SAMPLES);
+        memcpy(fourth, &samples[samples_counter], sizeof(double) * N_SAMPLES);
 
         samples_counter+= N_SAMPLES;
         if(samples_counter >= count)
@@ -150,7 +163,7 @@ int main(int argc, char *argv[]) {
 
         kiss_fft(cfg, in, out);
 
-        float out_norm[N_SAMPLES];
+        double out_norm[N_SAMPLES];
         norm2_v(out, out_norm, N_SAMPLES);
 
         movavg(out_norm, out_avg, 32);
@@ -160,9 +173,9 @@ int main(int argc, char *argv[]) {
 
             for(uint32_t l = 2; l < N_LINE_POINTS; ++l) {
 
-                float p1[2] = {compute_target_x(i, 100),
+                double p1[2] = {compute_target_x(i, 100),
                                 10 * l + gaussian_kernel[i] * out_norm[read_index]};
-                float p2[2] = {compute_target_x(i+1, 100),
+                double p2[2] = {compute_target_x(i+1, 100),
                                 10 * l + gaussian_kernel[i] * out_norm[read_index+1]};
 
                 fastline_bottom_left(buffer_gfx, p1[0], p1[1], p2[0], p2[1], makecol(255, 255, 255));
