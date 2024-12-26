@@ -8,3 +8,4 @@ https://user-images.githubusercontent.com/38140169/201787158-95d52ec6-63c0-4089-
 ## Dependencies 
 * Allegro 4.4 
 * KissFFT
+* sndfile
