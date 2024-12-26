@@ -1,15 +1,34 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.21)
 
-project(
-  waves
-  LANGUAGES C)
+project(waves)
 
-  add_executable(
-    waves 
-    src/main.c 
-    src/graphics.c 
-    src/graphics.h 
-    src/customdata.h
+  set(CMAKE_C_STANDARD 17)
+  set(CMAKE_C_STANDARD_REQUIRED True)
+
+  find_package(KissFFT QUIET)
+
+  add_executable(${PROJECT_NAME})
+  
+  target_sources(${PROJECT_NAME}
+  PRIVATE
+  src/main.c  
+  src/graphics.c
+  )
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(waves PRIVATE m kiss_fft_double sndfile alleg)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE m sndfile alleg)
+
+if(KissFFT_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE kissfft-float)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE kissfft)
+endif()
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    kiss_fft_scalar=float
+)
