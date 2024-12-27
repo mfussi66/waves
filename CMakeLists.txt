@@ -13,6 +13,7 @@ project(waves)
   PRIVATE
   src/main.c  
   src/graphics.c
+  src/waves.c
   )
 
 target_include_directories(${PROJECT_NAME}
