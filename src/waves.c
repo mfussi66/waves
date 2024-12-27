@@ -4,7 +4,10 @@
 #include <unistd.h> 
 #include <threads.h>
 
-int waves_thread(){
+int waves_thread(void* arg){
+
+  SF_INFO file_info;
+  SNDFILE* sndfile = sf_open(argv[1], SFM_READ, &file_info);
 
   kiss_fft_cfg cfg;
   kiss_fft_cpx in[N_SAMPLES], out[N_SAMPLES];
@@ -61,10 +64,6 @@ int waves_thread(){
   free(cfg);
 
   sf_close(sndfile);
-
-
-
   free(samples);
-
 
 }

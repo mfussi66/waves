@@ -5,6 +5,6 @@
 #include <sndfile.h>
 #include <kissfft/kiss_fft.h>
 
-int waves_thread();
+int waves_thread(void* arg);
 
 #endif

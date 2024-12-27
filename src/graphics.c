@@ -33,14 +33,15 @@ void fastline_bottom_left(BITMAP* buf, int x1, int y1, int x2, int y2, int col) 
     fastline(buf, x1, SCREEN_H - y1, x2, SCREEN_H - y2, col);
 }
 
-int graphics_task()
+int graphics_task(void *arg)
 {
+
+  start_allegro(GFX_AUTODETECT_WINDOWED);
 
   BITMAP* buffer_gfx;
 
   buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
   clear_to_color(buffer_gfx, 0);
-  int WHITE = makecol(255, 255, 255);
 
   blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
@@ -48,6 +49,8 @@ int graphics_task()
   uint32_t read_offset = 0;
 
   double gaussian_kernel[N_LINE_POINTS];
+
+  double out_norm[N_SAMPLES]; // TODO replace with actual data
 
   init_gaussian(N_LINE_POINTS, gaussian_kernel);
 

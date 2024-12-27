@@ -2,21 +2,9 @@
 #include "graphics.h"
 #include "waves.h"
 #include "constants.h"
-#include "wmath.h"
 
-#include <sndfile.h>
-#include <kissfft/kiss_fft.h>
-
-#include <math.h>
 #include <stdio.h>
-#include <time.h>
-#include <unistd.h> 
 #include <threads.h>
-
-#define N_SAMPLES 128
-#define PEAK_AMPLITUDE 50.0
-#define N_LINE_POINTS 64
-
 
 int main(int argc, char* argv[]) {
 
@@ -26,17 +14,19 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  SF_INFO file_info;
-  SNDFILE* sndfile = sf_open(argv[1], SFM_READ, &file_info);
-
-  if (sndfile == NULL || file_info.frames == 0) {
-    printf("Error: file not found\n");
-    return 1;
+  if (access(argv[1], F_OK) != 0) {
+      printf("Error: file not found\n");
+      return 1;
   }
 
+  thrd_t graphics_tid;
+  thrd_t waves_tid;
+  thrd_create(&graphics_tid, graphics_task, NULL);
+  thrd_create(&waves_tid, waves_thread, NULL);
 
-  start_allegro(GFX_AUTODETECT_WINDOWED);
-
+  int r = 0;
+  thrd_join(graphics_tid, &r);
+  thrd_join(waves_tid, &r);
 
   return 0;
 }
