@@ -33,7 +33,6 @@ int waves_thread(void* arg){
 
   sf_count_t samples_counter = 0;
 
-
   while(1)
   {
 
