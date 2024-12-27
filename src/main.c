@@ -3,10 +3,11 @@
 #include <sndfile.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h> 
 
 #include "graphics.h"
 
-#define N_SAMPLES 2048
+#define N_SAMPLES 128
 #define PEAK_AMPLITUDE 50.0
 #define N_LINE_POINTS 64
 
@@ -39,10 +40,7 @@ void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
 }
 
 double norm2(kiss_fft_cpx* c) {
-  double f = sqrtf(c->r * c->r + c->i * c->i);
-  // printf("[f] %f\n", f);
-  // printf("[r] %.2f [i] %.2f\n", c->r, c->i);
-  return f;
+  return sqrt(c->r * c->r + c->i * c->i);
 }
 
 int compute_target_x(uint32_t i, int offset) {
@@ -123,12 +121,11 @@ int main(int argc, char* argv[]) {
       file_info.samplerate, file_info.format, file_info.channels,
       file_info.frames);
 
-  double* samples =
-      (double*)malloc(file_info.frames * file_info.channels * sizeof(double));
+  float* samples = malloc(file_info.frames * file_info.channels * sizeof(float));
 
   sf_count_t count = -1;
   if (samples != NULL) {
-    count = sf_read_double(sndfile, samples, file_info.frames);
+    count = sf_read_float(sndfile, samples, file_info.frames * file_info.channels);
     printf("count: %lu frames: %lu \n", count, file_info.frames);
   }
 
@@ -139,12 +136,13 @@ int main(int argc, char* argv[]) {
 
     clear_to_color(buffer_gfx, 0);
 
-    memcpy(fourth, &samples[samples_counter], sizeof(double) * N_SAMPLES);
-
-    samples_counter += N_SAMPLES;
-    if (samples_counter >= count) {
+    if ((samples_counter + N_SAMPLES) >= count) {
       break;
     }
+
+    memcpy(fourth, &samples[samples_counter], sizeof(float) * N_SAMPLES);
+
+    samples_counter += N_SAMPLES;
 
     for (uint32_t i = 0; i < N_SAMPLES; i++) {
       in[i].r = fourth[i];
@@ -175,7 +173,7 @@ int main(int argc, char* argv[]) {
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
-    nanosleep(&request, &remaining);
+    usleep(1999);
   }
 
   free(cfg);

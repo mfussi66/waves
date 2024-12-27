@@ -20,7 +20,6 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-
 target_link_libraries(${PROJECT_NAME} PRIVATE m sndfile alleg)
 
 if(KissFFT_FOUND)
@@ -30,5 +29,5 @@ else()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    kiss_fft_scalar=float
+    kiss_fft_scalar=double
 )
