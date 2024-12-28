@@ -22,8 +22,10 @@ void start_allegro(int mode) {
 }
 
 void compute_point(double amplitude, int index, int line, int *p) {
-  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / N_LINE_POINTS;
-  p[1] = HEIGHT_SCREEN / N_LINE_POINTS * line + (int)amplitude;
+  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES/2 + 1);
+
+  int amp = amplitude > PEAK_AMPLITUDE ? PEAK_AMPLITUDE : amplitude;
+  p[1] = HEIGHT_SCREEN / N_LINE_POINTS * line + (int)amp;
 }
 
 int graphics_thread(void *arg) {
@@ -37,8 +39,8 @@ int graphics_thread(void *arg) {
   uint32_t read_index = 0;
   uint32_t read_offset = 0;
 
-  double gaussian_kernel[N_LINE_POINTS];
-  init_gaussian(N_LINE_POINTS, gaussian_kernel, PEAK_AMPLITUDE, 30.0);
+  double gaussian_kernel[N_SAMPLES/2+1];
+  init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 10.0);
 
   while (key[KEY_ESC] == 0) {
     if (keypressed()) {
@@ -60,15 +62,17 @@ int graphics_thread(void *arg) {
 
     clear_to_color(buffer_gfx, 0);
 
-    for (uint32_t i = 0; i < N_LINE_POINTS; ++i) {
-      read_index = (i + read_offset) % (N_LINE_POINTS - 1);
+    int ns = N_SAMPLES / 2 + 1;
+
+    for (uint32_t i = 0; i < ns; ++i) {
+      read_index = (i + read_offset) % (ns - 1);
 
       for (uint32_t l = 1; l < N_LINE_POINTS; ++l) {
         int p1[2];
         int p2[2];
 
         compute_point(gaussian_kernel[i] * mono_buffer[read_index], i, l, p1);
-        compute_point(gaussian_kernel[i] * mono_buffer[read_index + 1], i + 1,
+        compute_point(gaussian_kernel[i] * mono_buffer[read_index+1], i + 1,
                       l, p2);
 
         fastline_bottom_left(buffer_gfx, p1, p2);
@@ -80,7 +84,7 @@ int graphics_thread(void *arg) {
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
-    thrd_sleep(&(struct timespec){.tv_nsec = 0.015 * NANOSEC},
+    thrd_sleep(&(struct timespec){.tv_nsec = 0.033 * NANOSEC},
                NULL); // sleep for 15msec
   }
 

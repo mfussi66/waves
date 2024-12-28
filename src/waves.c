@@ -19,10 +19,12 @@ int waves_thread(void *arg) {
   SF_INFO file_info;
   SNDFILE *sndfile = sf_open(path, SFM_READ, &file_info);
 
-  kiss_fft_cfg cfg;
-  kiss_fft_cpx in[N_SAMPLES], out[N_SAMPLES];
+  kiss_fftr_cfg cfg;
+  kiss_fft_scalar in[N_SAMPLES];
+  kiss_fft_cpx out[N_SAMPLES/2 + 1];
+
   double out_avg[N_LINE_POINTS];
-  cfg = kiss_fft_alloc(N_SAMPLES, 0 /*is_inverse_fft*/, NULL, NULL);
+  cfg = kiss_fftr_alloc(N_SAMPLES, 0 /*is_inverse_fft*/, NULL, NULL);
 
   printf("File info:\n\tName: %s\n\tRate: %d\n\tFormat: %d\n\tChannels: "
          "%d\n\tFrames: %lu\n",
@@ -48,13 +50,13 @@ int waves_thread(void *arg) {
     long long start_time = current_time_ns();
 
     for (uint32_t i = 0; i < N_SAMPLES; i++) {
-      in[i].r = samples[samples_counter + i];
-      in[i].i = 0;
+      in[i] = samples[samples_counter + i];
+      //printf("in %f\n", in[i]);
     }
 
-    kiss_fft(cfg, in, out);
+    kiss_fftr(cfg, in, out);
 
-    norm2_v(out, mono_buffer, N_SAMPLES);
+    norm2_v(out, mono_buffer, N_SAMPLES/2 + 1);
 
     mtx_lock(&buffer_mutex);
     buffer_ready = 1;

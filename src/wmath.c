@@ -27,8 +27,30 @@ void mult_scalar(double a, double* b, uint32_t N) {
 }
 
 void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
+
+  double max = 1e-9;
+
   for (uint32_t i = 0; i < N; ++i)
-    aout[i] = sqrt(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
+  {
+
+        double mag = fabs(cin[i].r);
+
+        if(mag  <1e-9)
+        {
+          mag = 1e-9;
+        }
+
+        aout[i]= mag;
+
+        if(mag > max) max = mag;
+  }
+
+   for (uint32_t i = 0; i < N; ++i)
+  {
+    aout[i] = aout[i] / max;
+    //printf("bin: %i amp: %f r: %f i: %f\n", i, aout[i], cin[i].r, cin[i].i);
+  }
+
 }
 
 void init_gaussian(int n_samples, double* array, double amplitude, double variance) {

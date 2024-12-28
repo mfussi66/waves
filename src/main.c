@@ -8,7 +8,7 @@
 
 mtx_t buffer_mutex;
 cnd_t buffer_cond;
-double mono_buffer[N_SAMPLES]; 
+double mono_buffer[N_SAMPLES/2+1]; 
 int buffer_ready = 0;
 int buffer_emptied = 0;
 

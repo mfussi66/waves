@@ -3,7 +3,7 @@
 
 #include "wmath.h"
 #include <sndfile.h>
-#include <kissfft/kiss_fft.h>
+#include <kissfft/kiss_fftr.h>
 
 int waves_thread(void* arg);
 
