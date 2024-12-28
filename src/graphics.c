@@ -10,7 +10,7 @@
 
 void start_allegro(int mode) {
   allegro_init();
-  set_color_depth(8);
+  set_color_depth(32);
 
   set_gfx_mode(mode, WIDTH_SCREEN, HEIGHT_SCREEN, 0, 0);
   install_keyboard();
