@@ -70,7 +70,8 @@ int waves_thread(void *arg) {
 
     // Sleep for the remaining time if processing was faster than real-time
     if (elapsed_time < buffer_duration_ns) {
-      long long sleep_time_ns = buffer_duration_ns / file_info.frames * N_SAMPLES - elapsed_time;
+      long long sleep_time_ns =
+          buffer_duration_ns / file_info.frames * N_SAMPLES - elapsed_time;
       thrd_sleep(&(struct timespec){.tv_sec = sleep_time_ns / NANOSEC,
                                     .tv_nsec = sleep_time_ns % NANOSEC},
                  NULL);

@@ -31,10 +31,10 @@ void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
     aout[i] = sqrtf(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
 }
 
-void init_gaussian(int n_samples, double* array) {
+void init_gaussian(int n_samples, double* array, double amplitude, double variance) {
   for (int32_t i = 0; i < n_samples; ++i) {
-    array[i] = 0.4 * exp(-0.5 * (((double)i - (double)n_samples / 2.0) / 30.0) *
-                         (((double)i - (double)n_samples / 2.0) / 30.0));
+    array[i] = amplitude * exp(-0.5 * (((double)i - (double)n_samples / 2.0) / variance) *
+                         (((double)i - (double)n_samples / 2.0) / variance));
   }
 }
 

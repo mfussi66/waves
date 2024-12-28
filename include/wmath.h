@@ -18,7 +18,7 @@ void mult_scalar(double a, double *b, uint32_t N);
 
 void norm2_v(kiss_fft_cpx *cin, double *aout, uint32_t N);
 
-void init_gaussian(int n_samples, double *array);
+void init_gaussian(int n_samples, double* array, double amplitude, double variance);
 
 void movavg(double *in, double *out, int window);
 
