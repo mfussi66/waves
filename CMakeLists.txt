@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(waves)
 
-  set(CMAKE_C_STANDARD 17)
+  set(CMAKE_C_STANDARD 23)
   set(CMAKE_C_STANDARD_REQUIRED True)
 
   find_package(KissFFT QUIET)
@@ -14,7 +14,7 @@ project(waves)
   src/main.c  
   src/graphics.c
   src/wmath.c
- # src/waves.c
+  src/waves.c
   )
 
 target_include_directories(${PROJECT_NAME}

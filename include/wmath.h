@@ -2,14 +2,13 @@
 #ifndef WMATH_H
 #define WMATH_H
 
-#include "constants.h"
+#include "globals.h"
 
 #include <kissfft/kiss_fft.h>
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-
 
 void linspace(double start, double end, double phase_angle, double *array);
 

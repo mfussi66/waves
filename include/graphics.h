@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H_INCLUDED_
 #define GRAPHICS_H_INCLUDED_
 
-#include "constants.h"
+#include "globals.h"
 #include <allegro.h>
 
 void start_allegro(int mode);
@@ -16,6 +16,6 @@ static inline int compute_target_x(uint32_t i, int offset) {
   return offset / 2 + (i) * (SCREEN_W - offset) / N_LINE_POINTS;
 }
 
-int graphics_task(void *arg);
+int graphics_thread(void *arg);
 
 #endif

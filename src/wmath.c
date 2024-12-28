@@ -1,11 +1,11 @@
-#include "constants.h"
+#include "wmath.h"
+#include "globals.h"
 
 #include <kissfft/kiss_fft.h>
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-#include "wmath.h"
 
 void linspace(double start, double end, double phase_angle, double* array) {
   double step = (end - start) / (double)N_SAMPLES;

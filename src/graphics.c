@@ -1,11 +1,12 @@
 
 #include "graphics.h"
+#include "globals.h"
 #include "wmath.h"
 
 #include <stdio.h>
-#include <time.h>
-#include <unistd.h> 
 #include <threads.h>
+#include <time.h>
+#include <unistd.h>
 
 void start_allegro(int mode) {
   allegro_init();
@@ -25,20 +26,20 @@ void close_allegro(void) {
   printf("Closing Allegro\n");
 }
 
-void build_gui(BITMAP* bmp, int col) {
+void build_gui(BITMAP *bmp, int col) {
   rect(bmp, 10, 10, WIDTH_SCREEN - 10, HEIGHT_SCREEN - 10, col);
 }
 
-void fastline_bottom_left(BITMAP* buf, int x1, int y1, int x2, int y2, int col) {
-    fastline(buf, x1, SCREEN_H - y1, x2, SCREEN_H - y2, col);
+void fastline_bottom_left(BITMAP *buf, int x1, int y1, int x2, int y2,
+                          int col) {
+  fastline(buf, x1, SCREEN_H - y1, x2, SCREEN_H - y2, col);
 }
 
-int graphics_task(void *arg)
-{
+int graphics_thread(void *arg) {
 
   start_allegro(GFX_AUTODETECT_WINDOWED);
 
-  BITMAP* buffer_gfx;
+  BITMAP *buffer_gfx;
 
   buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
   clear_to_color(buffer_gfx, 0);
@@ -49,37 +50,49 @@ int graphics_task(void *arg)
   uint32_t read_offset = 0;
 
   double gaussian_kernel[N_LINE_POINTS];
-
-  double out_norm[N_SAMPLES]; // TODO replace with actual data
-
   init_gaussian(N_LINE_POINTS, gaussian_kernel);
 
   while (key[KEY_ESC] == 0) {
-    if (keypressed())
-    {
-       uint8_t scan = readkey() >> 8;
+    if (keypressed()) {
+      uint8_t scan = readkey() >> 8;
     }
+
+    mtx_lock(&buffer_mutex);
+
+    if (buffer_emptied) {
+      mtx_unlock(&buffer_mutex);
+      continue;
+    }
+
+    if (buffer_ready == 0) {
+      cnd_wait(&buffer_cond, &buffer_mutex);
+    }
+    buffer_ready = 0;
+    mtx_unlock(&buffer_mutex);
 
     clear_to_color(buffer_gfx, 0);
 
-  for (uint32_t i = 0; i < N_LINE_POINTS; ++i) {
+    for (uint32_t i = 0; i < N_LINE_POINTS; ++i) {
       read_index = (i + read_offset) % (N_LINE_POINTS - 1);
 
       for (uint32_t l = 2; l < N_LINE_POINTS; ++l) {
         double p1[2] = {compute_target_x(i, 100),
-                        10 * l + gaussian_kernel[i] * out_norm[read_index]};
+                        10 * l + gaussian_kernel[i] * mono_buffer[read_index]};
         double p2[2] = {compute_target_x(i + 1, 100),
-                        10 * l + gaussian_kernel[i] * out_norm[read_index + 1]};
+                        10 * l +
+                            gaussian_kernel[i] * mono_buffer[read_index + 1]};
 
-        fastline_bottom_left(buffer_gfx, p1[0], p1[1], p2[0], p2[1], makecol(255, 255, 255));
+        fastline_bottom_left(buffer_gfx, p1[0], p1[1], p2[0], p2[1],
+                             makecol(255, 255, 255));
       }
     }
 
-    if (++read_offset > N_LINE_POINTS) read_offset = 0;
+    if (++read_offset > N_LINE_POINTS)
+      read_offset = 0;
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
-    thrd_sleep(&(struct timespec){.tv_nsec=2e6}, NULL); // sleep for 2msec
+    thrd_sleep(&(struct timespec){.tv_nsec = 2e6}, NULL); // sleep for 2msec
   }
 
   destroy_bitmap(buffer_gfx);
