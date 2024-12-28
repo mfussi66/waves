@@ -40,8 +40,8 @@ int waves_thread(void *arg) {
   }
 
   sf_count_t samples_counter = 0;
-  long long buffer_duration_ns =
-      (long long)file_info.frames * NANOSEC / file_info.samplerate;
+  long long duration =
+      (long long)file_info.frames / file_info.samplerate * NANOSEC;
 
   while ((samples_counter + N_SAMPLES) < count) {
 
@@ -56,7 +56,6 @@ int waves_thread(void *arg) {
 
     norm2_v(out, mono_buffer, N_SAMPLES);
 
-    // Lock mutex and notify the rendering thread
     mtx_lock(&buffer_mutex);
     buffer_ready = 1;
     cnd_signal(&buffer_cond);
@@ -68,12 +67,11 @@ int waves_thread(void *arg) {
 
     long long elapsed_time = current_time_ns() - start_time;
 
-    // Sleep for the remaining time if processing was faster than real-time
-    if (elapsed_time < buffer_duration_ns) {
-      long long sleep_time_ns =
-          buffer_duration_ns / file_info.frames * N_SAMPLES - elapsed_time;
-      thrd_sleep(&(struct timespec){.tv_sec = sleep_time_ns / NANOSEC,
-                                    .tv_nsec = sleep_time_ns % NANOSEC},
+    if (elapsed_time < duration) {
+      long long sleep_t =
+          duration / file_info.frames * N_SAMPLES - elapsed_time;
+      thrd_sleep(&(struct timespec){.tv_sec = sleep_t / NANOSEC,
+                                    .tv_nsec = sleep_t % NANOSEC},
                  NULL);
     }
   }

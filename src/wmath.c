@@ -28,7 +28,7 @@ void mult_scalar(double a, double* b, uint32_t N) {
 
 void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
   for (uint32_t i = 0; i < N; ++i)
-    aout[i] = sqrtf(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
+    aout[i] = sqrt(cin[i].r * cin[i].r + cin[i].i * cin[i].i);
 }
 
 void init_gaussian(int n_samples, double* array, double amplitude, double variance) {
