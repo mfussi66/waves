@@ -40,7 +40,7 @@ int graphics_thread(void *arg) {
   uint32_t read_offset = 0;
 
   double gaussian_kernel[N_SAMPLES/2+1];
-  init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 10.0);
+  init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
 
   while (key[KEY_ESC] == 0) {
     if (keypressed()) {

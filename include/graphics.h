@@ -9,7 +9,7 @@ void start_allegro(int mode);
 void build_gui(BITMAP* bmp, int col);
 
 static inline void fastline_bottom_left(BITMAP *buf, int *p1, int *p2) {
-  fastline(buf, p1[0], SCREEN_H - p1[1], p2[0], SCREEN_H - p2[1], 
+  line(buf, p1[0], SCREEN_H - p1[1], p2[0], SCREEN_H - p2[1], 
           makecol(255, 255, 255));
 }
 
