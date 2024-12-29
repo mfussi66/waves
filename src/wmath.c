@@ -26,6 +26,43 @@ void mult_scalar(double a, double* b, uint32_t N) {
   for (uint32_t i = 0; i < N; ++i) b[i] *= a;
 }
 
+double maxf(double *a, size_t N)
+{
+  double m = -INFINITY;
+
+  for (size_t i = 0; i < N; i++)
+  {
+    if(a[i] > m) m = a[i];
+  }
+  
+  return m;
+}
+
+int squeeze_array(double *in, double *out, size_t N_in, size_t N_out)
+{
+
+  if(N_in % N_out != 0)
+  {
+    printf("Invalid size for squeezing!\n");
+    return 0;
+  }
+
+  size_t ratio = N_in / N_out;
+
+  for (size_t i = 0; i < N_out; i++)
+  {
+    double m = 0.0;
+    for(size_t j = ratio * i; j < ratio * (i + 1); j++)
+    {
+       m = maxf(&in[j], ratio);
+    }
+
+    out[i] = m;
+  }
+  
+  return 1;
+}
+
 void norm2_v(kiss_fft_cpx* cin, double* aout, uint32_t N) {
 
   double max = 1e-9;

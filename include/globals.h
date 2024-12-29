@@ -15,7 +15,7 @@
 
 extern mtx_t buffer_mutex;
 extern cnd_t buffer_cond;
-extern double mono_buffer[N_SAMPLES/2+1];
+extern double mono_buffer[N_SAMPLES/2];
 extern int buffer_ready;
 extern int buffer_emptied;
 

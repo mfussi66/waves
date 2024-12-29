@@ -21,7 +21,7 @@ int waves_thread(void *arg) {
 
   kiss_fftr_cfg cfg;
   kiss_fft_scalar in[N_SAMPLES];
-  kiss_fft_cpx out[N_SAMPLES/2 + 1];
+  kiss_fft_cpx out[N_SAMPLES/2];
 
   double out_avg[N_LINE_POINTS];
   cfg = kiss_fftr_alloc(N_SAMPLES, 0 /*is_inverse_fft*/, NULL, NULL);
@@ -56,7 +56,7 @@ int waves_thread(void *arg) {
 
     kiss_fftr(cfg, in, out);
 
-    norm2_v(out, mono_buffer, N_SAMPLES/2 + 1);
+    norm2_v(out, mono_buffer, N_SAMPLES/2);
 
     mtx_lock(&buffer_mutex);
     buffer_ready = 1;

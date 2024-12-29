@@ -39,7 +39,7 @@ int graphics_thread(void *arg) {
   uint32_t read_index = 0;
   uint32_t read_offset = 0;
 
-  double gaussian_kernel[N_SAMPLES/2+1];
+  double gaussian_kernel[N_SAMPLES/2];
   init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
 
   while (key[KEY_ESC] == 0) {
@@ -54,7 +54,7 @@ int graphics_thread(void *arg) {
       continue;
     }
 
-    if (buffer_ready == 0) {
+    while (buffer_ready == 0 && key[KEY_ESC] == 0) {
       cnd_wait(&buffer_cond, &buffer_mutex);
     }
     buffer_ready = 0;
@@ -62,7 +62,7 @@ int graphics_thread(void *arg) {
 
     clear_to_color(buffer_gfx, 0);
 
-    int ns = N_SAMPLES / 2 + 1;
+    int ns = N_SAMPLES / 2;
 
     for (uint32_t i = 0; i < ns; ++i) {
       read_index = (i + read_offset) % (ns - 1);
