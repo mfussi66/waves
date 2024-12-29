@@ -56,9 +56,8 @@ int waves_thread(void *arg) {
 
     kiss_fftr(cfg, in, out);
 
-    norm2_v(out, mono_buffer, N_SAMPLES/2);
-
     mtx_lock(&buffer_mutex);
+    norm2_v(out, mono_buffer, N_SAMPLES/2);
     buffer_ready = 1;
     cnd_signal(&buffer_cond);
     mtx_unlock(&buffer_mutex);

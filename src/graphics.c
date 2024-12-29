@@ -42,7 +42,7 @@ int graphics_thread(void *arg) {
   double gaussian_kernel[N_SAMPLES/2];
   init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
 
-  while (key[KEY_ESC] == 0) {
+  while (!key[KEY_ESC]) {
     if (keypressed()) {
       uint8_t scan = readkey() >> 8;
     }
@@ -54,7 +54,7 @@ int graphics_thread(void *arg) {
       continue;
     }
 
-    while (buffer_ready == 0 && key[KEY_ESC] == 0) {
+    while (!buffer_ready && !key[KEY_ESC]) {
       cnd_wait(&buffer_cond, &buffer_mutex);
     }
     buffer_ready = 0;
