@@ -5,11 +5,13 @@
 
 #define NANOSEC 1000000000LL
 
-#define N_SAMPLES_IN 512             // Max number of audio input samples
-#define N_FREQ_BINS N_SAMPLES_IN / 2 // Number of fft bins
-#define N_SAMPLES_OUT 64      // How many fft bins to compute and bufferize
-#define PEAK_AMPLITUDE 200 // Max height of waven in px
-#define N_VERT_LINES 32    // Number of vertical lines
+#define N_SAMPLES_IN 64             // Max number of audio input samples
+#define N_FREQ_BINS (N_SAMPLES_IN/2) // Number of fft bins
+#define N_SAMPLES_OUT 8      // How many fft bins to compute and bufferize
+#define N_VERT_LINES 8    // Number of vertical lines
+
+
+#define PEAK_AMPLITUDE 100 // Max height of waven in px
 
 #define WIDTH_SCREEN 1024
 #define HEIGHT_SCREEN 1024

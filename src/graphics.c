@@ -23,7 +23,7 @@ void start_allegro(int mode) {
 }
 
 void compute_point(double amplitude, int index, int line, int *p) {
-  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_FREQ_BINS);
+  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES_OUT);
 
   int amp = amplitude > PEAK_AMPLITUDE ? PEAK_AMPLITUDE : amplitude;
   p[1] = HEIGHT_SCREEN / N_VERT_LINES * (line + 1) + (int)amp;
@@ -45,6 +45,7 @@ int graphics_thread(void *arg) {
 
   double buf[N_FREQ_BINS];
   double vert[N_VERT_LINES];
+  double matrix[N_VERT_LINES][N_SAMPLES_OUT];
 
   while (!key[KEY_ESC]) {
     if (keypressed()) {
@@ -69,38 +70,36 @@ int graphics_thread(void *arg) {
       printf("Error when squeezing array!\n");
     }
 
+    shift_column_left(matrix);
+
+    for (int i = 0; i < N_VERT_LINES; i++)
+    {
+      matrix[i][N_SAMPLES_OUT - 1] = vert[i];
+
+      printf("vert(%d): %f\n", i, vert[i]);
+    }
+    
+   for (int i = 0; i < (N_VERT_LINES); i++) { // For each column
+    for (int j = 0; j < (N_SAMPLES_OUT); j++)   // For each row element
+    {
+      printf("(%d %d): %f\n", i, j, matrix[i][j]);
+    }
+  }
+
     clear_to_color(buffer_gfx, 0);
 
+  for (int i = 0; i < N_SAMPLES_OUT - 1; i++) {
     for (int l = 0; l < N_VERT_LINES; l++) {
-      for (int i = 0; i < N_FREQ_BINS; i++) {
-        //  read_index = (i + read_offset) % (N_FREQ_BINS - 1);
 
         int p1[2] = {0, 0};
         int p2[2] = {0, 0};
 
-        compute_point(gaussian_kernel[i] * vert[l], i, l, p1);
-        compute_point(gaussian_kernel[i] * vert[l], i + 1, l, p2);
+        compute_point(gaussian_kernel[i] * matrix[l][i ], i, l, p1);
+        compute_point(gaussian_kernel[i] * matrix[l][i + 1], i + 1, l, p2);
         fastline_bottom_left(buffer_gfx, p1, p2);
+        //printf("printing line %d sample %d\n", l, i);
       }
     }
-
-    if (++read_offset > N_FREQ_BINS)
-      read_offset = 0;
-
-    // for (uint32_t i = 0; i < ns; ++i) {
-    //   read_index = (i + read_offset) % (ns - 1);
-
-    //   for (uint32_t l = 1; l < N_VERT_LINES; ++l) {
-    //     int p1[2] = {0, 0};
-    //     int p2[2] = {0, 0};
-
-    //     compute_point(gaussian_kernel[i] * buf[read_index], i, l, p1);
-    //     compute_point(gaussian_kernel[i] * buf[read_index+1], i + 1,
-    //                   l, p2);
-
-    //     fastline_bottom_left(buffer_gfx, p1, p2);
-    //   }
-    // }
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
