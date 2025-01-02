@@ -7,6 +7,7 @@
 #include <threads.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 void start_allegro(int mode) {
   allegro_init();
@@ -22,10 +23,10 @@ void start_allegro(int mode) {
 }
 
 void compute_point(double amplitude, int index, int line, int *p) {
-  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES/2 + 1);
+  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES/2);
 
   int amp = amplitude > PEAK_AMPLITUDE ? PEAK_AMPLITUDE : amplitude;
-  p[1] = HEIGHT_SCREEN / N_LINE_POINTS * line + (int)amp;
+  p[1] = HEIGHT_SCREEN / N_VERT_LINES * line + (int)amp;
 }
 
 int graphics_thread(void *arg) {
@@ -40,7 +41,10 @@ int graphics_thread(void *arg) {
   uint32_t read_offset = 0;
 
   double gaussian_kernel[N_SAMPLES/2];
-  init_gaussian(N_SAMPLES/2+1, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
+  init_gaussian(N_SAMPLES/2, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
+
+  double buf[N_SAMPLES/2];
+  double vert[N_VERT_LINES];
 
   while (!key[KEY_ESC]) {
     if (keypressed()) {
@@ -58,28 +62,34 @@ int graphics_thread(void *arg) {
       cnd_wait(&buffer_cond, &buffer_mutex);
     }
     buffer_ready = 0;
+    memcpy(buf, mono_buffer, (N_SAMPLES/2)* sizeof(double));
     mtx_unlock(&buffer_mutex);
 
-    clear_to_color(buffer_gfx, 0);
-
     int ns = N_SAMPLES / 2;
+
+    if(!squeeze_array(buf, vert, N_SAMPLES/2, N_VERT_LINES))
+    {
+      printf("Error when squeezing array!\n");
+    }
+
+    clear_to_color(buffer_gfx, 0);
 
     for (uint32_t i = 0; i < ns; ++i) {
       read_index = (i + read_offset) % (ns - 1);
 
-      for (uint32_t l = 1; l < N_LINE_POINTS; ++l) {
-        int p1[2];
-        int p2[2];
+      for (uint32_t l = 1; l < N_VERT_LINES; ++l) {
+        int p1[2] = {0, 0};
+        int p2[2] = {0, 0};
 
-        compute_point(gaussian_kernel[i] * mono_buffer[read_index], i, l, p1);
-        compute_point(gaussian_kernel[i] * mono_buffer[read_index+1], i + 1,
+        compute_point(gaussian_kernel[i] * buf[read_index], i, l, p1);
+        compute_point(gaussian_kernel[i] * buf[read_index+1], i + 1,
                       l, p2);
 
         fastline_bottom_left(buffer_gfx, p1, p2);
       }
     }
 
-    if (++read_offset > N_LINE_POINTS)
+    if (++read_offset > N_VERT_LINES)
       read_offset = 0;
 
     blit(buffer_gfx, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);

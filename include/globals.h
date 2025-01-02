@@ -5,9 +5,9 @@
 
 #define NANOSEC 1000000000LL
 
-#define N_SAMPLES 512
-#define PEAK_AMPLITUDE 120
-#define N_LINE_POINTS 80
+#define N_SAMPLES 512       // Max number of audio input samples
+#define PEAK_AMPLITUDE 120  // Max height of waven in px
+#define N_VERT_LINES 64     // Number of vertical lines
 
 #define WIDTH_SCREEN 1024
 #define HEIGHT_SCREEN 1024 

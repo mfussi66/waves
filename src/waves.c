@@ -23,7 +23,7 @@ int waves_thread(void *arg) {
   kiss_fft_scalar in[N_SAMPLES];
   kiss_fft_cpx out[N_SAMPLES/2];
 
-  double out_avg[N_LINE_POINTS];
+  double out_avg[N_VERT_LINES];
   cfg = kiss_fftr_alloc(N_SAMPLES, 0 /*is_inverse_fft*/, NULL, NULL);
 
   printf("File info:\n\tName: %s\n\tRate: %d\n\tFormat: %d\n\tChannels: "
