@@ -1,13 +1,27 @@
 # waves
 
-An attempt at reproducing Joy Division's Unknown Pleasures cover art in pure C and Allegro 4.4.
+Reproducing Joy Division's Unknown Pleasures cover art in pure C by showing the moving real FFT of a wave file.
 
-Something along these lines:
-
-<https://user-images.githubusercontent.com/38140169/201787158-95d52ec6-63c0-4089-81c1-a6da043273f5.mp4>
+![](cap.png)
 
 ## Dependencies
 
 * Allegro 4.4
-* KissFFT
-* sndfile
+* KissFFT (compiled with `float` support)
+* libsndfile
+
+## Building
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## Usage
+
+```bash
+cd build
+./waves <path/to/file.wav>
+```
