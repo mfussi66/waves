@@ -8,7 +8,7 @@
 
 mtx_t buffer_mutex;
 cnd_t buffer_cond;
-double mono_buffer[N_FREQ_BINS]; 
+float mono_buffer[N_FREQ_BINS]; 
 int buffer_ready = 0;
 int buffer_emptied = 0;
 
@@ -31,11 +31,13 @@ int main(int argc, char* argv[]) {
   thrd_t graphics_tid;
   thrd_t waves_tid;
 
+  memset(mono_buffer, 0, N_FREQ_BINS * sizeof(float));
+
   mtx_init(&buffer_mutex, mtx_plain);
   cnd_init(&buffer_cond);
 
-  thrd_create(&graphics_tid, graphics_thread, NULL);
   thrd_create(&waves_tid, waves_thread, argv[1]);
+  thrd_create(&graphics_tid, graphics_thread, NULL);
 
 
   thrd_join(graphics_tid, &r);

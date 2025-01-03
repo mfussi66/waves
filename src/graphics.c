@@ -22,8 +22,8 @@ void start_allegro(int mode) {
   return;
 }
 
-void compute_point(double amplitude, int index, int line, int *p) {
-  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES_OUT);
+void compute_point(float amplitude, int index, int line, int *p) {
+  p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES_OUT - 1);
 
   int amp = amplitude > PEAK_AMPLITUDE ? PEAK_AMPLITUDE : amplitude;
   p[1] = HEIGHT_SCREEN / N_VERT_LINES * (line + 1) + (int)amp;
@@ -40,12 +40,14 @@ int graphics_thread(void *arg) {
   uint32_t read_index = 0;
   uint32_t read_offset = 0;
 
-  double gaussian_kernel[N_FREQ_BINS];
-  init_gaussian(N_FREQ_BINS, gaussian_kernel, PEAK_AMPLITUDE, 25.0);
+  float gaussian_kernel[N_SAMPLES_OUT];
+  init_gaussian(N_SAMPLES_OUT, gaussian_kernel, PEAK_AMPLITUDE, VARIANCE);
 
-  double buf[N_FREQ_BINS];
-  double vert[N_VERT_LINES];
-  double matrix[N_VERT_LINES][N_SAMPLES_OUT];
+  float buf[N_FREQ_BINS];
+  float vert[N_VERT_LINES];
+  float matrix[N_VERT_LINES][N_SAMPLES_OUT];
+
+  memset(matrix, 0, sizeof(float) * N_VERT_LINES * N_SAMPLES_OUT);
 
   while (!key[KEY_ESC]) {
     if (keypressed()) {
@@ -56,14 +58,13 @@ int graphics_thread(void *arg) {
 
     if (buffer_emptied) {
       mtx_unlock(&buffer_mutex);
-      continue;
     }
 
     while (!buffer_ready && !key[KEY_ESC]) {
       cnd_wait(&buffer_cond, &buffer_mutex);
     }
     buffer_ready = 0;
-    memcpy(buf, mono_buffer, (N_FREQ_BINS) * sizeof(double));
+    memcpy(buf, mono_buffer, (N_FREQ_BINS) * sizeof(float));
     mtx_unlock(&buffer_mutex);
 
     if (!squeeze_array(buf, vert, N_FREQ_BINS, N_VERT_LINES)) {
@@ -75,16 +76,16 @@ int graphics_thread(void *arg) {
     for (int i = 0; i < N_VERT_LINES; i++)
     {
       matrix[i][N_SAMPLES_OUT - 1] = vert[i];
-
-      printf("vert(%d): %f\n", i, vert[i]);
+      
+     // printf("vert(%d): %f\n", i, vert[i]);
     }
     
-   for (int i = 0; i < (N_VERT_LINES); i++) { // For each column
-    for (int j = 0; j < (N_SAMPLES_OUT); j++)   // For each row element
-    {
-      printf("(%d %d): %f\n", i, j, matrix[i][j]);
-    }
-  }
+  //  for (int i = 0; i < (N_VERT_LINES); i++) { // For each column
+  //   for (int j = 0; j < (N_SAMPLES_OUT); j++)   // For each row element
+  //   {
+  //     printf("(%d %d): %f\n", i, j, matrix[i][j]);
+  //   }
+  // }
 
     clear_to_color(buffer_gfx, 0);
 
@@ -94,10 +95,13 @@ int graphics_thread(void *arg) {
         int p1[2] = {0, 0};
         int p2[2] = {0, 0};
 
-        compute_point(gaussian_kernel[i] * matrix[l][i ], i, l, p1);
-        compute_point(gaussian_kernel[i] * matrix[l][i + 1], i + 1, l, p2);
+        float amp1 = gaussian_kernel[i] * matrix[l][i];
+        float amp2 = gaussian_kernel[i + 1] * matrix[l][i + 1];
+        
+        compute_point(amp1, i, l, p1);
+        compute_point(amp2, i + 1, l, p2);
         fastline_bottom_left(buffer_gfx, p1, p2);
-        //printf("printing line %d sample %d\n", l, i);
+        //printf("printing line %d sample %d p2 (%f %f)\n", l, i+1,amp1, amp2);
       }
     }
 

@@ -13,7 +13,7 @@ static inline void fastline_bottom_left(BITMAP *buf, int *p1, int *p2) {
           makecol(255, 255, 255));
 }
 
-void compute_point(double amplitude, int index, int line, int *p);
+void compute_point(float amplitude, int index, int line, int *p);
 
 int graphics_thread(void *arg);
 

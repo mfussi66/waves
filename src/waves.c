@@ -28,13 +28,13 @@ int waves_thread(void *arg) {
          path, file_info.samplerate, file_info.format, file_info.channels,
          file_info.frames);
 
-  double *samples =
-      malloc(file_info.frames * file_info.channels * sizeof(double));
+  float *samples =
+      malloc(file_info.frames * file_info.channels * sizeof(float));
 
   sf_count_t count = -1;
   if (samples != NULL) {
     count =
-        sf_read_double(sndfile, samples, file_info.frames * file_info.channels);
+        sf_read_float(sndfile, samples, file_info.frames * file_info.channels);
     printf("count: %lu frames: %lu \n", count, file_info.frames);
   }
 
@@ -44,6 +44,10 @@ int waves_thread(void *arg) {
   sf_count_t samples_counter = 0;
   long long duration =
       (long long)file_info.frames / file_info.samplerate * NANOSEC;
+
+
+  float vert[N_VERT_LINES];
+  memset(vert, 0, N_VERT_LINES * sizeof(float));
 
   while ((samples_counter + N_SAMPLES_IN) < count) {
 
@@ -57,10 +61,18 @@ int waves_thread(void *arg) {
 
     mtx_lock(&buffer_mutex);
     norm2_v(out, mono_buffer, N_FREQ_BINS);
+    //squeeze_array(mono_buffer, vert, N_FREQ_BINS, N_VERT_LINES);
     buffer_ready = 1;
     cnd_signal(&buffer_cond);
     mtx_unlock(&buffer_mutex);
 
+    // printf("----\nsc: %lu\n", samples_counter);
+
+    // for (size_t i = 0; i < N_VERT_LINES; i++)
+    // {
+    //   printf("mb[%lu] %.10f\n", i, vert[i]);
+    // }
+    
     samples_counter += N_SAMPLES_IN;
 
     long long elapsed_time = current_time_ns() - start_time;

@@ -8,6 +8,11 @@ project(waves)
   find_package(KissFFT QUIET)
 
   add_executable(${PROJECT_NAME})
+
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+endif(CMAKE_BUILD_TYPE MATCHES "Debug")
   
   target_sources(${PROJECT_NAME}
   PRIVATE
@@ -31,5 +36,5 @@ else()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    kiss_fft_scalar=double
+    kiss_fft_scalar=float
 )
