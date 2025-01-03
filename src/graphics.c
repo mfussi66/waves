@@ -25,7 +25,7 @@ void start_allegro(int mode) {
 void compute_point(float amplitude, int index, int line, int *p) {
   p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES_OUT - 1);
 
-  int amp = amplitude > PEAK_AMPLITUDE ? PEAK_AMPLITUDE : amplitude;
+  int amp = amplitude > PEAK_AMPLITUDE * 10 ? PEAK_AMPLITUDE * 10 : amplitude;
   p[1] = HEIGHT_SCREEN / N_VERT_LINES * (line + 1) + (int)amp;
 }
 
