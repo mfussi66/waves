@@ -25,13 +25,17 @@ void start_allegro(int mode) {
 void compute_point(float amplitude, int index, int line, int *p) {
   p[0] = PAD_SIDE / 2 + (index) * (SCREEN_W - PAD_SIDE) / (N_SAMPLES_OUT - 1);
 
-  int amp = amplitude > PEAK_AMPLITUDE * 10 ? PEAK_AMPLITUDE * 10 : amplitude;
-  p[1] = HEIGHT_SCREEN / N_VERT_LINES * (line + 1) + (int)amp;
+  int max_amp = HEIGHT_SCREEN / N_VERT_LINES;
+  int amp = amplitude > max_amp ? max_amp : amplitude;
+  
+  p[1] = max_amp * (line + 1) + (int)amp;
 }
 
 int graphics_thread(void *arg) {
 
   start_allegro(GFX_AUTODETECT_WINDOWED);
+
+  srand(0);  
 
   BITMAP *buffer_gfx;
   buffer_gfx = create_bitmap(SCREEN_W, SCREEN_H);
@@ -90,13 +94,15 @@ int graphics_thread(void *arg) {
     clear_to_color(buffer_gfx, 0);
 
   for (int i = 0; i < N_SAMPLES_OUT - 1; i++) {
-    for (int l = 0; l < N_VERT_LINES; l++) {
+    for (int l = 0; l < N_VERT_LINES - 1; l++) {
 
         int p1[2] = {0, 0};
         int p2[2] = {0, 0};
 
-        float amp1 = gaussian_kernel[i] * matrix[l][i];
-        float amp2 = gaussian_kernel[i + 1] * matrix[l][i + 1];
+        int r = (rand() % (2 + 2 + 1)) - 2;
+        r = 0;
+        float amp1 = gaussian_kernel[i] * (matrix[l][i] + r);
+        float amp2 = gaussian_kernel[i + 1] * (matrix[l][i + 1] + r);
         
         compute_point(amp1, i, l, p1);
         compute_point(amp2, i + 1, l, p2);

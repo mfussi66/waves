@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void linspace(float start, float end, float phase_angle, float *array);
-
 int squeeze_array(float *in, float *out, size_t N_in, size_t N_out);
 
 void norm2_v(kiss_fft_cpx *c_in, float *a_out, uint32_t N);

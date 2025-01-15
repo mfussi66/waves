@@ -7,17 +7,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void linspace(float start, float end, float phase_angle, float *array) {
-  float step = (end - start) / (float)N_SAMPLES_IN;
-  array[0] = start;
-
-  for (size_t i = 0; i < N_SAMPLES_IN; ++i) {
-    array[i] = sin(start + (float)i * step + phase_angle);
-  }
-
-  return;
-}
-
 int squeeze_array(float *in, float *out, size_t N_in, size_t N_out) {
 
   if (N_in % N_out != 0) {
