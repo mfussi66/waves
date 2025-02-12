@@ -32,7 +32,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE m sndfile alleg)
 if(KissFFT_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE kissfft-float)
 else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE kissfft)
+    target_link_libraries(${PROJECT_NAME} PRIVATE kissfft-float)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

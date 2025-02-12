@@ -7,11 +7,11 @@
 
 #define N_SAMPLES_IN 1024             // Max number of audio input samples
 #define N_FREQ_BINS (N_SAMPLES_IN/2) // Number of fft bins
-#define N_SAMPLES_OUT 128      // How many fft bins to compute and bufferize
+#define N_SAMPLES_OUT 256     // How many fft bins to compute and bufferize
 #define N_VERT_LINES 128    // Number of vertical lines
 
-#define PEAK_AMPLITUDE 40 // Max height of waven in px
-#define VARIANCE 15.0
+#define PEAK_AMPLITUDE 15 //max height of waven in px
+#define VARIANCE 60.0
 #define WIDTH_SCREEN 1280
 #define HEIGHT_SCREEN 1280
 #define PAD_SIDE 100

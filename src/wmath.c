@@ -49,9 +49,8 @@ void norm2_v(kiss_fft_cpx *c_in, float *a_out, uint32_t N) {
 void init_gaussian(int n_samples, float *array, float amplitude,
                    float variance) {
   for (int32_t i = 0; i < n_samples; ++i) {
-    array[i] = amplitude *
-               exp(-0.5 * (((float)i - (float)n_samples / 2.0) / variance) *
-                   (((float)i - (float)n_samples / 2.0) / variance));
+    float arg = pow(((float)i - (float)n_samples / 2.0) / variance, 2);
+    array[i] = amplitude * exp(- pow(0.5 * arg, 3));
   }
 }
 
